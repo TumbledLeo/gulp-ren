@@ -9,7 +9,6 @@ var app = {
 var gulp = require('gulp');
 var scss = require('gulp-sass');         // css 预编译
 var cssmin = require('gulp-cssmin');        // 压缩css
-
 var uglify = require('gulp-uglify');        // 压缩js
 var htmlmin = require('gulp-htmlmin');
 var concat = require('gulp-concat');        // 合并文件
@@ -17,7 +16,7 @@ var connect = require('gulp-connect');
 var imagemin = require('gulp-imagemin');  // 压缩图片
 var open = require('open');
 var babel = require("gulp-babel");
-
+var less = require('gulp-less');
 
 /*任务1  把下载的前端框架放到我们项目中lib*/
 gulp.task('lib', function () {
@@ -38,9 +37,9 @@ gulp.task('media', function () {
 gulp.task('html', function () {
     var options = {
         removeComments: true,//清除HTML注释
-        collapseWhitespace: true,//压缩HTML
-        collapseBooleanAttributes: true,//省略布尔属性的值 <input checked="true"/> ==> <input />
-        removeEmptyAttributes: true,//删除所有空格作属性值 <input id="" /> ==> <input />
+       collapseWhitespace: true,//压缩HTML
+       collapseBooleanAttributes: true,//省略布尔属性的值 <input checked="true"/> ==> <input />
+       removeEmptyAttributes: true,//删除所有空格作属性值 <input id="" /> ==> <input />
         //removeScriptTypeAttributes: true,//删除<script>的type="text/javascript"
         //removeStyleLinkTypeAttributes: true,//删除<style>和<link>的type="text/css"
         //minifyJS: true,//压缩页面JS
@@ -53,10 +52,20 @@ gulp.task('html', function () {
         .pipe(connect.reload())
 });
 
-/*任务4 把scss编译成css*/
+/*任务4-1 把scss编译成css*/
 gulp.task('scss', function () {
     gulp.src(app.srcPath + 'style/*.scss')
         .pipe(scss())
+       // .pipe(cssmin())//压缩
+        .pipe(gulp.dest(app.buildPath + 'css/'))
+        .pipe(cssmin())//压缩
+        .pipe(gulp.dest(app.distPath + 'css/'))
+        .pipe(connect.reload())
+});
+/*任务4-2 把scss编译成css*/
+gulp.task('less', function () {
+    gulp.src(app.srcPath + 'style/*.less')
+        .pipe(less())
        // .pipe(cssmin())//压缩
         .pipe(gulp.dest(app.buildPath + 'css/'))
         .pipe(cssmin())//压缩
@@ -70,7 +79,7 @@ gulp.task('js', function () {
         .pipe(babel({
             presets: ['es2015']
         }))
-        .pipe(uglify({ mangle: false }))//压缩
+      //  .pipe(uglify({ mangle: false }))//压缩
         .pipe(gulp.dest(app.buildPath + 'js/'))
         .pipe(uglify({ mangle: false }))//压缩
         .pipe(gulp.dest(app.distPath + 'js/'))
@@ -119,6 +128,14 @@ gulp.task('mobile-css', function () {
         .pipe(gulp.dest(app.distPath + 'm/css'))
         .pipe(connect.reload())
 })
+gulp.task('mobile-css2', function () {
+    gulp.src(app.srcPath + 'm/style/*.less')
+        .pipe(less())
+        .pipe(gulp.dest(app.buildPath + "m/css"))
+     //  .pipe(cssmin())//压缩
+        .pipe(gulp.dest(app.distPath + 'm/css'))
+        .pipe(connect.reload())
+})
 /*任务7-js  移动端的js 搞到 m/js 文件夹下*/
 gulp.task('mobile-js', function () {
     gulp.src(app.srcPath + 'm/js/*.js')
@@ -134,7 +151,7 @@ gulp.task('mobile-js', function () {
 /*同时执行多个任务【其他任务的名称】
 * 当bulid执行时，会把数组中的所有任务执行了
 * */
-gulp.task('build', ['lib', 'html', 'scss', 'js', 'image', 'media', 'mobile', 'mobile-css', 'mobile-js', 'mobile-image']);
+gulp.task('build', ['lib', 'html', 'scss','less', 'js', 'image', 'media', 'mobile', 'mobile-css','mobile-css2', 'mobile-js', 'mobile-image']);
 //gulp.task('dist', ['lib', 'html', 'scss', 'js', 'image', 'media', 'mobile', 'mobile-css', 'mobile-js', 'mobile-image']);
 /*定义server服务
 * 搭建一个服务器，设置运行构建目录
